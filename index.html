@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Archive</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --border: #2a2a2a;
+    --accent: #c8f060;
+    --accent2: #60c8f0;
+    --text: #e8e4dc;
+    --muted: #666;
+    --tag-bg: #1e2a14;
+    --tag-color: #c8f060;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Libre Baskerville', Georgia, serif;
+    min-height: 100vh;
+  }
+
+  /* noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    padding: 60px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: var(--text);
+  }
+
+  .count-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--accent);
+    background: var(--tag-bg);
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+  }
+
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 300;
+    letter-spacing: 0.5px;
+  }
+
+  /* SEARCH + ADD */
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .search-wrap {
+    flex: 1;
+    min-width: 240px;
+    position: relative;
+  }
+
+  .search-wrap::before {
+    content: '⌕';
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 18px;
+    pointer-events: none;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 12px 14px 12px 38px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--accent);
+  }
+
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  .btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    padding: 12px 20px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0e0e0e;
+  }
+  .btn-primary:hover { background: #d8ff70; transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* FILTER TABS */
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .filter-tab {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 5px 12px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  .filter-tab:hover, .filter-tab.active {
+    background: var(--tag-bg);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* RESULTS INFO */
+  .results-info {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+  }
+
+  /* PAPER CARDS */
+  .papers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .paper-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 24px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+    position: relative;
+    animation: fadeIn 0.3s ease both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .paper-card:hover {
+    border-color: #3a3a3a;
+    transform: translateX(3px);
+  }
+
+  .paper-card.expanded {
+    border-color: var(--accent);
+  }
+
+  .paper-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .paper-title {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .paper-year {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 400;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .paper-authors {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  .paper-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    background: var(--tag-bg);
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .tag.blue { background: #0f2030; color: var(--accent2); }
+  .tag.orange { background: #2a1a0a; color: #f0a060; }
+
+  .paper-body {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .paper-card.expanded .paper-body { display: block; }
+
+  .paper-notes {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #aaa;
+  }
+
+  .paper-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    text-decoration: none;
+    letter-spacing: 0.5px;
+  }
+  .paper-link:hover { text-decoration: underline; }
+
+  .paper-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .btn-sm {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 6px 12px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .btn-sm:hover { color: var(--text); border-color: #444; }
+  .btn-sm.danger:hover { color: #f06060; border-color: #f06060; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 32px;
+    width: 100%;
+    max-width: 560px;
+    animation: slideUp 0.2s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal h2 {
+    font-size: 20px;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .field input, .field textarea, .field select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Libre Baskerville', serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    border-radius: 3px;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: vertical;
+  }
+
+  .field input:focus, .field textarea:focus, .field select:focus {
+    border-color: var(--accent);
+  }
+
+  .field select option { background: var(--bg); }
+
+  .modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 80px 0;
+    color: var(--muted);
+  }
+  .empty .icon { font-size: 40px; margin-bottom: 16px; opacity: 0.4; }
+  .empty p { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+  /* STATUS DOT */
+  .status-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .status-dot.read { background: var(--accent); }
+  .status-dot.reading { background: var(--accent2); }
+  .status-dot.unread { background: var(--muted); }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 48px 0 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--border);
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <header>
+    <div class="header-top">
+      <h1>Reading Archive</h1>
+      <span class="count-badge" id="totalCount">0 papers</span>
+    </div>
+    <p class="subtitle">mechanistic interpretability · cognitive neuroscience · ML theory</p>
+  </header>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="search by title, author, keyword…" oninput="renderPapers()">
+    </div>
+    <button class="btn btn-ghost" onclick="clearSearch()">CLEAR</button>
+    <button class="btn btn-primary" onclick="openModal()">+ ADD PAPER</button>
+  </div>
+
+  <div class="filter-row" id="filterRow">
+    <button class="filter-tab active" onclick="setFilter('all', this)">ALL</button>
+    <button class="filter-tab" onclick="setFilter('read', this)">READ</button>
+    <button class="filter-tab" onclick="setFilter('reading', this)">IN PROGRESS</button>
+    <button class="filter-tab" onclick="setFilter('unread', this)">UNREAD</button>
+  </div>
+
+  <div class="results-info" id="resultsInfo"></div>
+  <div class="papers-list" id="papersList"></div>
+  <div class="empty" id="emptyState" style="display:none">
+    <div class="icon">◎</div>
+    <p>No papers found.</p>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <h2 id="modalTitle">Add Paper</h2>
+    <div class="field">
+      <label>Title *</label>
+      <input type="text" id="fTitle" placeholder="A Mathematical Framework for Transformer Circuits">
+    </div>
+    <div class="field">
+      <label>Authors *</label>
+      <input type="text" id="fAuthors" placeholder="Elhage, Nanda, Olsson et al.">
+    </div>
+    <div class="field">
+      <label>Year</label>
+      <input type="text" id="fYear" placeholder="2021">
+    </div>
+    <div class="field">
+      <label>Link (URL)</label>
+      <input type="text" id="fLink" placeholder="https://arxiv.org/abs/...">
+    </div>
+    <div class="field">
+      <label>Tags (comma-separated)</label>
+      <input type="text" id="fTags" placeholder="circuits, transformers, attention">
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <select id="fStatus">
+        <option value="unread">Unread</option>
+        <option value="reading">In Progress</option>
+        <option value="read">Read</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="fNotes" rows="3" placeholder="Key takeaways, thoughts, connections to your work…"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">CANCEL</button>
+      <button class="btn btn-primary" onclick="savePaper()">SAVE PAPER</button>
+    </div>
+  </div>
+</div>
+
+<footer>personal archive · built for the curious</footer>
+
+<script>
+const STORAGE_KEY = 'reading_archive_v1';
+let papers = [];
+let editingId = null;
+let activeFilter = 'all';
+
+const DEFAULT_PAPERS = [
+  {
+    id: 1,
+    title: "A Mathematical Framework for Transformer Circuits",
+    authors: "Elhage, Nanda, Olsson, Henighan et al.",
+    year: "2021",
+    link: "https://transformer-circuits.pub/2021/framework/index.html",
+    tags: ["circuits", "transformers", "foundational"],
+    status: "read",
+    notes: "Core framework for understanding how information flows through transformer attention layers. Introduces the residual stream view. Essential first read."
+  },
+  {
+    id: 2,
+    title: "Toy Models of Superposition",
+    authors: "Elhage, Henighan, Joseph et al.",
+    year: "2022",
+    link: "https://transformer-circuits.pub/2022/toy_model/index.html",
+    tags: ["features", "superposition", "foundational"],
+    status: "read",
+    notes: "Explains how models store more features than they have dimensions — by superimposing them. Fundamental for understanding polysemanticity."
+  },
+  {
+    id: 3,
+    title: "Towards Monosemanticity: Decomposing Language Models with Dictionary Learning",
+    authors: "Bricken, Templeton, Batson et al.",
+    year: "2023",
+    link: "https://transformer-circuits.pub/2023/monosemantic-features/index.html",
+    tags: ["SAE", "features", "sparse autoencoders"],
+    status: "reading",
+    notes: "Uses sparse autoencoders (SAEs) to decompose MLP layers into interpretable features. Includes Joshua Batson as co-author."
+  },
+  {
+    id: 4,
+    title: "Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 small",
+    authors: "Wang, Variengien, Conmy, Shlegeris, Steinhardt",
+    year: "2022",
+    link: "https://arxiv.org/abs/2211.00593",
+    tags: ["circuits", "IOI", "GPT-2"],
+    status: "unread",
+    notes: ""
+  },
+  {
+    id: 5,
+    title: "Scaling Monosemanticity: Extracting Interpretable Features from Claude 3 Sonnet",
+    authors: "Templeton, Conerly, Marcus et al.",
+    year: "2024",
+    link: "https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html",
+    tags: ["SAE", "Claude", "scaling"],
+    status: "unread",
+    notes: ""
+  }
+];
+
+function load() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  papers = raw ? JSON.parse(raw) : DEFAULT_PAPERS;
+  renderPapers();
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(papers));
+}
+
+function nextId() {
+  return papers.length ? Math.max(...papers.map(p => p.id)) + 1 : 1;
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderPapers();
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  renderPapers();
+}
+
+function renderPapers() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  let filtered = papers.filter(p => {
+    const matchSearch = !q ||
+      p.title.toLowerCase().includes(q) ||
+      p.authors.toLowerCase().includes(q) ||
+      (p.tags || []).some(t => t.toLowerCase().includes(q)) ||
+      (p.notes || '').toLowerCase().includes(q);
+    const matchFilter = activeFilter === 'all' || p.status === activeFilter;
+    return matchSearch && matchFilter;
+  });
+
+  // Sort: reading first, then read, then unread; within each by year desc
+  const order = { reading: 0, read: 1, unread: 2 };
+  filtered.sort((a, b) => order[a.status] - order[b.status] || (b.year || 0) - (a.year || 0));
+
+  document.getElementById('totalCount').textContent = `${papers.length} paper${papers.length !== 1 ? 's' : ''}`;
+  document.getElementById('resultsInfo').textContent =
+    q || activeFilter !== 'all' ? `${filtered.length} result${filtered.length !== 1 ? 's' : ''}` : '';
+
+  const list = document.getElementById('papersList');
+  const empty = document.getElementById('emptyState');
+
+  if (filtered.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  list.innerHTML = filtered.map((p, i) => {
+    const tagColors = { SAE: 'blue', circuits: '', transformers: '', features: '', foundational: 'orange', scaling: 'orange' };
+    const tagsHtml = (p.tags || []).map(t => {
+      const cls = tagColors[t] || '';
+      return `<span class="tag ${cls}">${t}</span>`;
+    }).join('');
+    const statusLabel = { read: 'read', reading: 'reading', unread: 'unread' }[p.status];
+    const linkHtml = p.link ? `<a class="paper-link" href="${p.link}" target="_blank">↗ open paper</a>` : '';
+    const notesHtml = p.notes ? `<p class="paper-notes">${p.notes}</p>` : `<p class="paper-notes" style="color:#444;font-style:italic">No notes yet.</p>`;
+
+    return `
+      <div class="paper-card" id="card-${p.id}" onclick="toggleCard(${p.id})" style="animation-delay:${i * 0.04}s">
+        <div class="paper-header">
+          <div class="paper-title">
+            <span class="status-dot ${p.status}"></span>${p.title}
+          </div>
+          <span class="paper-year">${p.year || '—'}</span>
+        </div>
+        <div class="paper-authors">${p.authors}</div>
+        <div class="paper-tags">${tagsHtml}</div>
+        <div class="paper-body">
+          ${notesHtml}
+          ${linkHtml}
+          <div class="paper-actions">
+            <button class="btn-sm" onclick="editPaper(event, ${p.id})">EDIT</button>
+            <button class="btn-sm" onclick="cycleStatus(event, ${p.id})">${statusLabel.toUpperCase()} ↻</button>
+            <button class="btn-sm danger" onclick="deletePaper(event, ${p.id})">DELETE</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleCard(id) {
+  const card = document.getElementById('card-' + id);
+  card.classList.toggle('expanded');
+}
+
+function cycleStatus(e, id) {
+  e.stopPropagation();
+  const cycle = { unread: 'reading', reading: 'read', read: 'unread' };
+  const p = papers.find(x => x.id === id);
+  if (p) { p.status = cycle[p.status]; save(); renderPapers(); }
+}
+
+function deletePaper(e, id) {
+  e.stopPropagation();
+  if (confirm('Remove this paper from your archive?')) {
+    papers = papers.filter(p => p.id !== id);
+    save();
+    renderPapers();
+  }
+}
+
+function openModal(prefill = null) {
+  editingId = prefill ? prefill.id : null;
+  document.getElementById('modalTitle').textContent = editingId ? 'Edit Paper' : 'Add Paper';
+  document.getElementById('fTitle').value = prefill?.title || '';
+  document.getElementById('fAuthors').value = prefill?.authors || '';
+  document.getElementById('fYear').value = prefill?.year || '';
+  document.getElementById('fLink').value = prefill?.link || '';
+  document.getElementById('fTags').value = (prefill?.tags || []).join(', ');
+  document.getElementById('fStatus').value = prefill?.status || 'unread';
+  document.getElementById('fNotes').value = prefill?.notes || '';
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('fTitle').focus(), 100);
+}
+
+function editPaper(e, id) {
+  e.stopPropagation();
+  const p = papers.find(x => x.id === id);
+  if (p) openModal(p);
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  editingId = null;
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function savePaper() {
+  const title = document.getElementById('fTitle').value.trim();
+  const authors = document.getElementById('fAuthors').value.trim();
+  if (!title || !authors) { alert('Title and authors are required.'); return; }
+
+  const data = {
+    title,
+    authors,
+    year: document.getElementById('fYear').value.trim(),
+    link: document.getElementById('fLink').value.trim(),
+    tags: document.getElementById('fTags').value.split(',').map(t => t.trim()).filter(Boolean),
+    status: document.getElementById('fStatus').value,
+    notes: document.getElementById('fNotes').value.trim(),
+  };
+
+  if (editingId) {
+    const idx = papers.findIndex(p => p.id === editingId);
+    papers[idx] = { ...papers[idx], ...data };
+  } else {
+    papers.unshift({ id: nextId(), ...data });
+  }
+
+  save();
+  closeModal();
+  renderPapers();
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'f' && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    document.getElementById('searchInput').focus();
+  }
+});
+
+load();
+</script>
+</body>
+</html>
