@@ -27,7 +27,6 @@
     min-height: 100vh;
   }
 
-  /* noise texture overlay */
   body::before {
     content: '';
     position: fixed;
@@ -46,7 +45,6 @@
     z-index: 1;
   }
 
-  /* HEADER */
   header {
     padding: 60px 0 40px;
     border-bottom: 1px solid var(--border);
@@ -87,7 +85,6 @@
     letter-spacing: 0.5px;
   }
 
-  /* SEARCH + ADD */
   .controls {
     display: flex;
     gap: 12px;
@@ -145,12 +142,6 @@
     white-space: nowrap;
   }
 
-  .btn-primary {
-    background: var(--accent);
-    color: #0e0e0e;
-  }
-  .btn-primary:hover { background: #d8ff70; transform: translateY(-1px); }
-
   .btn-ghost {
     background: transparent;
     color: var(--muted);
@@ -158,7 +149,6 @@
   }
   .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
 
-  /* FILTER TABS */
   .filter-row {
     display: flex;
     gap: 6px;
@@ -185,7 +175,6 @@
     border-color: var(--accent);
   }
 
-  /* RESULTS INFO */
   .results-info {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
@@ -194,7 +183,6 @@
     letter-spacing: 0.5px;
   }
 
-  /* PAPER CARDS */
   .papers-list {
     display: flex;
     flex-direction: column;
@@ -290,7 +278,7 @@
   .paper-notes {
     font-size: 14px;
     line-height: 1.7;
-    color: #aaa;
+    color: #666;
   }
 
   .paper-link {
@@ -304,105 +292,6 @@
   }
   .paper-link:hover { text-decoration: underline; }
 
-  .paper-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 14px;
-  }
-
-  .btn-sm {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 1px;
-    padding: 6px 12px;
-    border-radius: 2px;
-    border: 1px solid var(--border);
-    background: transparent;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .btn-sm:hover { color: var(--text); border-color: #444; }
-  .btn-sm.danger:hover { color: #f06060; border-color: #f06060; }
-
-  /* MODAL */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.75);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    backdrop-filter: blur(4px);
-  }
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 32px;
-    width: 100%;
-    max-width: 560px;
-    animation: slideUp 0.2s ease;
-  }
-
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .modal h2 {
-    font-size: 20px;
-    margin-bottom: 24px;
-    color: var(--text);
-  }
-
-  .field {
-    margin-bottom: 16px;
-  }
-
-  .field label {
-    display: block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-
-  .field input, .field textarea, .field select {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'Libre Baskerville', serif;
-    font-size: 14px;
-    padding: 10px 12px;
-    border-radius: 3px;
-    outline: none;
-    transition: border-color 0.2s;
-    resize: vertical;
-  }
-
-  .field input:focus, .field textarea:focus, .field select:focus {
-    border-color: var(--accent);
-  }
-
-  .field select option { background: var(--bg); }
-
-  .modal-footer {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 24px;
-  }
-
-  /* EMPTY STATE */
   .empty {
     text-align: center;
     padding: 80px 0;
@@ -411,7 +300,6 @@
   .empty .icon { font-size: 40px; margin-bottom: 16px; opacity: 0.4; }
   .empty p { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
 
-  /* STATUS DOT */
   .status-dot {
     display: inline-block;
     width: 6px; height: 6px;
@@ -423,7 +311,6 @@
   .status-dot.reading { background: var(--accent2); }
   .status-dot.unread { background: var(--muted); }
 
-  /* FOOTER */
   footer {
     text-align: center;
     padding: 48px 0 32px;
@@ -449,7 +336,6 @@
       <input type="text" id="searchInput" placeholder="search by title, author, keyword…" oninput="renderPapers()">
     </div>
     <button class="btn btn-ghost" onclick="clearSearch()">CLEAR</button>
-    <button class="btn btn-primary" onclick="openModal()">+ ADD PAPER</button>
   </div>
 
   <div class="filter-row" id="filterRow">
@@ -467,55 +353,10 @@
   </div>
 </div>
 
-<!-- MODAL -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
-  <div class="modal">
-    <h2 id="modalTitle">Add Paper</h2>
-    <div class="field">
-      <label>Title *</label>
-      <input type="text" id="fTitle" placeholder="A Mathematical Framework for Transformer Circuits">
-    </div>
-    <div class="field">
-      <label>Authors *</label>
-      <input type="text" id="fAuthors" placeholder="Elhage, Nanda, Olsson et al.">
-    </div>
-    <div class="field">
-      <label>Year</label>
-      <input type="text" id="fYear" placeholder="2021">
-    </div>
-    <div class="field">
-      <label>Link (URL)</label>
-      <input type="text" id="fLink" placeholder="https://arxiv.org/abs/...">
-    </div>
-    <div class="field">
-      <label>Tags (comma-separated)</label>
-      <input type="text" id="fTags" placeholder="circuits, transformers, attention">
-    </div>
-    <div class="field">
-      <label>Status</label>
-      <select id="fStatus">
-        <option value="unread">Unread</option>
-        <option value="reading">In Progress</option>
-        <option value="read">Read</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Notes</label>
-      <textarea id="fNotes" rows="3" placeholder="Key takeaways, thoughts, connections to your work…"></textarea>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal()">CANCEL</button>
-      <button class="btn btn-primary" onclick="savePaper()">SAVE PAPER</button>
-    </div>
-  </div>
-</div>
-
 <footer>personal archive · built for the curious</footer>
 
 <script>
-const STORAGE_KEY = 'reading_archive_v1';
 let papers = [];
-let editingId = null;
 let activeFilter = 'all';
 
 const DEFAULT_PAPERS = [
@@ -552,17 +393,8 @@ const DEFAULT_PAPERS = [
 ];
 
 function load() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  papers = raw ? JSON.parse(raw) : DEFAULT_PAPERS;
+  papers = DEFAULT_PAPERS;
   renderPapers();
-}
-
-function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(papers));
-}
-
-function nextId() {
-  return papers.length ? Math.max(...papers.map(p => p.id)) + 1 : 1;
 }
 
 function setFilter(f, el) {
@@ -589,7 +421,6 @@ function renderPapers() {
     return matchSearch && matchFilter;
   });
 
-  // Sort: reading first, then read, then unread; within each by year desc
   const order = { reading: 0, read: 1, unread: 2 };
   filtered.sort((a, b) => order[a.status] - order[b.status] || (b.year || 0) - (a.year || 0));
 
@@ -613,9 +444,8 @@ function renderPapers() {
       const cls = tagColors[t] || '';
       return `<span class="tag ${cls}">${t}</span>`;
     }).join('');
-    const statusLabel = { read: 'read', reading: 'reading', unread: 'unread' }[p.status];
     const linkHtml = p.link ? `<a class="paper-link" href="${p.link}" target="_blank">↗ open paper</a>` : '';
-    const notesHtml = p.notes ? `<p class="paper-notes">${p.notes}</p>` : `<p class="paper-notes" style="color:#444;font-style:italic">No notes yet.</p>`;
+    const notesHtml = p.notes ? `<p class="paper-notes">${p.notes}</p>` : `<p class="paper-notes" style="color:#aaa;font-style:italic">No notes yet.</p>`;
 
     return `
       <div class="paper-card" id="card-${p.id}" onclick="toggleCard(${p.id})" style="animation-delay:${i * 0.04}s">
@@ -630,11 +460,6 @@ function renderPapers() {
         <div class="paper-body">
           ${notesHtml}
           ${linkHtml}
-          <div class="paper-actions">
-            <button class="btn-sm" onclick="editPaper(event, ${p.id})">EDIT</button>
-            <button class="btn-sm" onclick="cycleStatus(event, ${p.id})">${statusLabel.toUpperCase()} ↻</button>
-            <button class="btn-sm danger" onclick="deletePaper(event, ${p.id})">DELETE</button>
-          </div>
         </div>
       </div>`;
   }).join('');
@@ -645,81 +470,7 @@ function toggleCard(id) {
   card.classList.toggle('expanded');
 }
 
-function cycleStatus(e, id) {
-  e.stopPropagation();
-  const cycle = { unread: 'reading', reading: 'read', read: 'unread' };
-  const p = papers.find(x => x.id === id);
-  if (p) { p.status = cycle[p.status]; save(); renderPapers(); }
-}
-
-function deletePaper(e, id) {
-  e.stopPropagation();
-  if (confirm('Remove this paper from your archive?')) {
-    papers = papers.filter(p => p.id !== id);
-    save();
-    renderPapers();
-  }
-}
-
-function openModal(prefill = null) {
-  editingId = prefill ? prefill.id : null;
-  document.getElementById('modalTitle').textContent = editingId ? 'Edit Paper' : 'Add Paper';
-  document.getElementById('fTitle').value = prefill?.title || '';
-  document.getElementById('fAuthors').value = prefill?.authors || '';
-  document.getElementById('fYear').value = prefill?.year || '';
-  document.getElementById('fLink').value = prefill?.link || '';
-  document.getElementById('fTags').value = (prefill?.tags || []).join(', ');
-  document.getElementById('fStatus').value = prefill?.status || 'unread';
-  document.getElementById('fNotes').value = prefill?.notes || '';
-  document.getElementById('modalOverlay').classList.add('open');
-  setTimeout(() => document.getElementById('fTitle').focus(), 100);
-}
-
-function editPaper(e, id) {
-  e.stopPropagation();
-  const p = papers.find(x => x.id === id);
-  if (p) openModal(p);
-}
-
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  editingId = null;
-}
-
-function closeModalOutside(e) {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-}
-
-function savePaper() {
-  const title = document.getElementById('fTitle').value.trim();
-  const authors = document.getElementById('fAuthors').value.trim();
-  if (!title || !authors) { alert('Title and authors are required.'); return; }
-
-  const data = {
-    title,
-    authors,
-    year: document.getElementById('fYear').value.trim(),
-    link: document.getElementById('fLink').value.trim(),
-    tags: document.getElementById('fTags').value.split(',').map(t => t.trim()).filter(Boolean),
-    status: document.getElementById('fStatus').value,
-    notes: document.getElementById('fNotes').value.trim(),
-  };
-
-  if (editingId) {
-    const idx = papers.findIndex(p => p.id === editingId);
-    papers[idx] = { ...papers[idx], ...data };
-  } else {
-    papers.unshift({ id: nextId(), ...data });
-  }
-
-  save();
-  closeModal();
-  renderPapers();
-}
-
-// Keyboard shortcut
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModal();
   if (e.key === 'f' && (e.metaKey || e.ctrlKey)) {
     e.preventDefault();
     document.getElementById('searchInput').focus();
