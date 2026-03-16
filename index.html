@@ -123,10 +123,7 @@
     transition: border-color 0.2s;
   }
 
-  input[type="text"]:focus {
-    border-color: var(--accent);
-  }
-
+  input[type="text"]:focus { border-color: var(--accent); }
   input[type="text"]::placeholder { color: var(--muted); }
 
   .btn {
@@ -205,14 +202,8 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .paper-card:hover {
-    border-color: #3a3a3a;
-    transform: translateX(3px);
-  }
-
-  .paper-card.expanded {
-    border-color: var(--accent);
-  }
+  .paper-card:hover { border-color: #3a3a3a; transform: translateX(3px); }
+  .paper-card.expanded { border-color: var(--accent); }
 
   .paper-header {
     display: flex;
@@ -307,9 +298,10 @@
     margin-right: 6px;
     vertical-align: middle;
   }
-  .status-dot.read { background: var(--accent); }
+  .status-dot.read    { background: var(--accent); }
   .status-dot.reading { background: var(--accent2); }
-  .status-dot.unread { background: var(--muted); }
+  .status-dot.unread  { background: var(--muted); }
+  .status-dot.queue   { background: #f0a060; }
 
   footer {
     text-align: center;
@@ -342,6 +334,7 @@
     <button class="filter-tab active" onclick="setFilter('all', this)">ALL</button>
     <button class="filter-tab" onclick="setFilter('read', this)">READ</button>
     <button class="filter-tab" onclick="setFilter('reading', this)">IN PROGRESS</button>
+    <button class="filter-tab" onclick="setFilter('queue', this)">QUEUE</button>
     <button class="filter-tab" onclick="setFilter('unread', this)">UNREAD</button>
   </div>
 
@@ -393,7 +386,7 @@ const DEFAULT_PAPERS = [
   {
     id: 4,
     title: "Atypical combinations and scientific impact",
-    authors: "Brian Uzzi, Satyam Mukherjee, Michael Stringer, Ben Jones"
+    authors: "Brian Uzzi, Satyam Mukherjee, Michael Stringer, Ben Jones",
     year: "2013",
     link: "https://www.science.org/doi/10.1126/science.1240474",
     tags: ["atypicality", "novelty", "science of science"],
@@ -403,36 +396,33 @@ const DEFAULT_PAPERS = [
   {
     id: 5,
     title: "Do LLMs Benefit From Their Own Words?",
-    authors: "Jenny Y. Huang, et al."
+    authors: "Jenny Y. Huang, et al.",
     year: "2026",
     link: "https://arxiv.org/abs/2602.24287",
     tags: ["language models", "context pollution"],
     status: "queue",
     notes: ""
   },
- {
+  {
     id: 6,
     title: "Artificial Hivemind: The Open-Ended Homogeneity of Language Models (and Beyond)",
-    authors: "Liwei Jiang, et al."
+    authors: "Liwei Jiang, et al.",
     year: "2025",
     link: "https://arxiv.org/abs/2510.22954",
     tags: ["language models", "LLMs", "output diversity"],
     status: "queue",
     notes: ""
   },
-{
+  {
     id: 7,
     title: "Liver exerkine reverses aging- and Alzheimer's-related memory loss via vasculature",
-    authors: "Gregor Bieri, et al."
+    authors: "Gregor Bieri, et al.",
     year: "2026",
     link: "https://www.cell.com/cell/fulltext/S0092-8674(26)00111-X",
     tags: ["Alzheimer's disease", "aging", "blood-brain barrier", "cognition", "exercise", "rejuvenation"],
     status: "queue",
     notes: ""
   }
-  
-    
-  
 ];
 
 function load() {
@@ -464,7 +454,7 @@ function renderPapers() {
     return matchSearch && matchFilter;
   });
 
-  const order = { reading: 0, read: 1, unread: 2 };
+  const order = { reading: 0, read: 1, queue: 2, unread: 3 };
   filtered.sort((a, b) => order[a.status] - order[b.status] || (b.year || 0) - (a.year || 0));
 
   document.getElementById('totalCount').textContent = `${papers.length} paper${papers.length !== 1 ? 's' : ''}`;
